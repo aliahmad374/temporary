@@ -39,11 +39,7 @@ car_data = pd.DataFrame(left_cars_urls)
 
 
 urls_file = open("links_done.txt", "a")
-# left_urls = []
-#
-# for p in list(set(all_urls)):
-#     if p.strip() not in total_urls:
-#         left_urls.append(p.strip())
+
 count = 0
 
 for group_name_make, df_group_make in car_data.groupby('make'):
@@ -64,98 +60,89 @@ for group_name_make, df_group_make in car_data.groupby('make'):
         MY_DB.commit()
         get_manufacturer_id = """ SELECT MAX(id) FROM  `toyodiy`.`manufacturer`"""
 
-        # query3 = "SELECT max(Car_id) FROM toyodiy.Toyodiy_Car;"
-        # my_cursor = my_db.cursor()
         my_cursor.execute(get_manufacturer_id)
-        get_model_id = my_cursor.fetchall()[0][0]
+        get_make_id = my_cursor.fetchall()[0][0]
     else:
-        get_model_id = get_make_id[0]
+        get_make_id = get_make_id[0]
 
     for group_name_model, df_group_model in df_group_make.groupby('model'):
 
-        get_make_query = f""" SELECT id FROM  `toyodiy`.`model` where model ='{group_name_model}' and manufacturer_id ={get_model_id}"""
+        get_make_query = f""" SELECT id FROM  `toyodiy`.`model` where model ='{group_name_model}' and manufacturer_id ={get_make_id}"""
         my_cursor.execute(get_make_query)
         try:
-            get_model_id_id = [my_cursor.fetchall()[0][0]]
+            get_model_id = [my_cursor.fetchall()[0][0]]
         except:
-            get_model_id_id = []
+            get_model_id = []
 
-        if len(get_model_id_id) < 1:
+        if len(get_model_id) < 1:
 
             insert_into_model = """ INSERT INTO `toyodiy`.`model` (`manufacturer_id`,`model`) VALUES (%s,%s)"""
 
-            value = [get_model_id, group_name_model]
+            value = [get_make_id, group_name_model]
 
             my_cursor.execute(insert_into_model, value)
             MY_DB.commit()
             my_cursor = MY_DB.cursor()
-            # my_cursor.execute(insert_into_manufacturer, value)
-            # MY_DB.commit()
+
             get_model_id = """ SELECT MAX(id) FROM  `toyodiy`.`model`"""
 
-            # query3 = "SELECT max(Car_id) FROM toyodiy.Toyodiy_Car;"
-            # my_cursor = my_db.cursor()
             my_cursor.execute(get_model_id)
-            get_year_id = my_cursor.fetchall()[0][0]
+            get_model_id = my_cursor.fetchall()[0][0]
 
         else:
-            get_year_id = get_model_id_id[0]
+            get_model_id = get_model_id[0]
 
         for group_name_year, df_group_year in df_group_model.groupby('Year'):
 
-            get_make_query = f""" SELECT id FROM  `toyodiy`.`type_year` where model_id ='{get_year_id}' and year ={group_name_year}"""
+            get_make_query = f""" SELECT id FROM  `toyodiy`.`type_year` where manufacturer_id ={get_make_id} and model_id ='{get_model_id}' and year ={group_name_year}"""
             my_cursor.execute(get_make_query)
             try:
-                get_year_id_id = [my_cursor.fetchall()[0][0]]
+                get_year_id = [my_cursor.fetchall()[0][0]]
             except:
-                get_year_id_id = []
+                get_year_id = []
 
 
-            if len(get_year_id_id)<1:
+            if len(get_year_id)<1:
 
-                insert_into_model = """ INSERT INTO `toyodiy`.`type_year` (`model_id`,`year`) VALUES (%s,%s)"""
+                insert_into_model = """ INSERT INTO `toyodiy`.`type_year` (`manufacturer_id`,`model_id`,`year`) VALUES (%s,%s,%s)"""
 
-                value = [get_year_id, int(group_name_year)]
+                value = [get_make_id,get_model_id, int(group_name_year)]
 
                 my_cursor.execute(insert_into_model, value)
                 MY_DB.commit()
 
                 get_vehicle_query = """ SELECT MAX(id) FROM  `toyodiy`.`type_year`"""
 
-                # query3 = "SELECT max(Car_id) FROM u322103768_scrap_data.Toyodiy_Car;"
-                # my_cursor = my_db.cursor()
                 my_cursor.execute(get_vehicle_query)
-                get_vehicle_id1 = my_cursor.fetchall()[0][0]
+                get_year_id = my_cursor.fetchall()[0][0]
 
             else:
-                get_vehicle_id1 = get_year_id_id[0]
+                get_year_id = get_year_id[0]
 
             for group_name_vehicle, df_group_vehicle in df_group_model.groupby('engine'):
 
-                get_make_query = f""" SELECT id FROM  `toyodiy`.`vehicle_engine` where type_year_id ={get_vehicle_id1} and engine_power ='{group_name_vehicle}'"""
+                get_make_query = f""" SELECT id FROM  `toyodiy`.`vehicle_engine` where manufacturer_id ={get_make_id} and model_id ='{get_model_id}' and type_year_id ={get_year_id} and engine_power ='{group_name_vehicle}'"""
                 my_cursor.execute(get_make_query)
                 try:
-                    get_year_id_id = [my_cursor.fetchall()[0][0]]
+                    get_vehicle_id = [my_cursor.fetchall()[0][0]]
                 except:
-                    get_year_id_id = []
+                    get_vehicle_id = []
 
-                if len(get_year_id_id)<1:
-                    insert_into_model = """ INSERT INTO `toyodiy`.`vehicle_engine` (`type_year_id`,`engine_power`) VALUES (%s,%s)"""
+                if len(get_vehicle_id)<1:
+                    insert_into_model = """ INSERT INTO `toyodiy`.`vehicle_engine` (`manufacturer_id`,`model_id`,`type_year_id`,`engine_power`) VALUES (%s,%s,%s,%s)"""
 
-                    value = [get_vehicle_id1, group_name_vehicle]
+                    value = [get_make_id,get_model_id,get_year_id, group_name_vehicle]
 
                     my_cursor.execute(insert_into_model, value)
                     MY_DB.commit()
 
                     get_vehicle_engine_query = """ SELECT MAX(id) FROM  `toyodiy`.`vehicle_engine`"""
 
-                    # query3 = "SELECT max(Car_id) FROM toyodiy.Toyodiy_Car;"
-                    # my_cursor = my_db.cursor()
                     my_cursor.execute(get_vehicle_engine_query)
-                    get_vehicle_engine_id = my_cursor.fetchall()[0][0]
+                    get_vehicle_id = my_cursor.fetchall()[0][0]
 
                 else:
-                    get_vehicle_engine_id = get_year_id_id[0]
+                    get_vehicle_id = get_vehicle_id[0]
 
 
                 for loop_parts in df_group_vehicle.to_dict('records'):
@@ -172,9 +159,12 @@ for group_name_make, df_group_make in car_data.groupby('make'):
                     for j in total_data.css("div#page2 ol li a"):
                         item["category"] = j.css("::text").get()
 
-
-                        find_categoryid_query = f""" SELECT id FROM  `toyodiy`.`category` where category_name ='{item["category"]}'"""
-                        my_cursor.execute(find_categoryid_query)
+                        try:
+                            find_categoryid_query = f""" SELECT id FROM  `toyodiy`.`category` where manufacturer_id ={get_make_id} and model_id ='{get_model_id}' and type_year_id ={get_year_id} and vehicle_id={get_vehicle_id} and category_name ='{item["category"]}'"""
+                            my_cursor.execute(find_categoryid_query)
+                        except:
+                            print('error')
+                            pass
                         try:
                             get_category_id = [my_cursor.fetchall()[0][0]]
                         except:
@@ -182,17 +172,15 @@ for group_name_make, df_group_make in car_data.groupby('make'):
 
 
                         if len(get_category_id) < 1:
-                            insert_into_category = """ INSERT INTO `toyodiy`.`category` (`category_name`) VALUES (%s)"""
+                            insert_into_category = """ INSERT INTO `toyodiy`.`category` (`manufacturer_id`,`model_id`,`type_year_id`,`vehicle_id`,`category_name`) VALUES (%s,%s,%s,%s,%s)"""
 
-                            value = [item["category"]]
+                            value = [get_make_id,get_model_id,get_year_id,get_vehicle_id,item["category"]]
 
                             my_cursor.execute(insert_into_category, value)
                             MY_DB.commit()
 
                             get_category_query = """ SELECT MAX(id) FROM  `toyodiy`.`category`"""
 
-                            # query3 = "SELECT max(Car_id) FROM toyodiy.Toyodiy_Car;"
-                            # my_cursor = my_db.cursor()
                             my_cursor.execute(get_category_query)
                             get_category_id = my_cursor.fetchall()[0][0]
 
@@ -204,7 +192,7 @@ for group_name_make, df_group_make in car_data.groupby('make'):
                         for k in category_resp.css(".diag-list a"):
                             item["sub_category"] = k.css("::text").get().split(":")[-1]
 
-                            find_subcategoryid_query = f""" SELECT id FROM  `toyodiy`.`sub_category` where sub_category_name ='{item["sub_category"]}'"""
+                            find_subcategoryid_query = f""" SELECT id FROM  `toyodiy`.`sub_category` where category_id={get_category_id} and sub_category_name ='{item["sub_category"]}'"""
                             my_cursor.execute(find_subcategoryid_query)
                             try:
                                 get_subcategory_id = [my_cursor.fetchall()[0][0]]
@@ -221,9 +209,6 @@ for group_name_make, df_group_make in car_data.groupby('make'):
                                 MY_DB.commit()
 
                                 get_subcategory_query = """ SELECT MAX(id) FROM  `toyodiy`.`sub_category`"""
-
-                                # query3 = "SELECT max(Car_id) FROM toyodiy.Toyodiy_Car;"
-                                # my_cursor = my_db.cursor()
                                 my_cursor.execute(get_subcategory_query)
                                 get_subcategory_id = my_cursor.fetchall()[0][0]
 
@@ -253,7 +238,7 @@ for group_name_make, df_group_make in car_data.groupby('make'):
                                     count = count + 1
                                     print(count)
 
-                                    find_part_query = f""" SELECT id FROM  `toyodiy`.`parts` where vehicle_car_id ={get_vehicle_engine_id} and sub_category_id={get_subcategory_id} and engine_code='{item['engine_code']}' and part_number='{item["part_number"]}'"""
+                                    find_part_query = f""" SELECT id FROM  `toyodiy`.`parts` where sub_category_id={get_subcategory_id} and engine_code='{item['engine_code']}' and part_number='{item["part_number"]}'"""
                                     my_cursor.execute(find_part_query)
                                     try:
                                         get_part_id = [my_cursor.fetchall()[0][0]]
@@ -261,17 +246,19 @@ for group_name_make, df_group_make in car_data.groupby('make'):
                                         get_part_id = []
 
                                     if len(get_part_id) <1:
-                                        query2 = """ INSERT INTO `toyodiy`.`parts` (`vehicle_car_id`,`sub_category_id`,`engine_code`,`market`,`part_number`,`part_name`,`quantity_required`,`part_source`,`price`) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)"""
+                                        query2 = """ INSERT INTO `toyodiy`.`parts` (`sub_category_id`,`engine_code`,`market`,`part_number`,`part_name`,`quantity_required`,`part_source`,`price`) VALUES (%s,%s,%s,%s,%s,%s,%s,%s)"""
 
-                                        value2 = [get_vehicle_engine_id, get_subcategory_id,item['engine_code'],loop_parts['Market'] ,item["part_number"], item["part_name"],
+                                        value2 = [get_subcategory_id,item['engine_code'],loop_parts['Market'] ,item["part_number"], item["part_name"],
                                                    item["quantity_required"], item["source"],0]
 
                                         try:
                                             my_cursor.execute(query2, value2)
                                             MY_DB.commit()
+                                            print('Done')
                                         except:
                                             a=1
                                             pass
                     urls_file.write(url+'\n')
                     urls_file.flush()
+
 
